@@ -47,19 +47,25 @@ def printMenu():
 
 
 catalog = None
+routes = 'routes_full.csv'
+airports = 'airports_full.csv'
+cities = 'worlcities'
 
 """
 Menu principal
 """
+
 while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
+        catalog = controller.init()
+        
         print("Cargando información de los archivos ....")
 
     elif int(inputs[0]) == 2:
-        pass
-
+        controller.loadData(catalog,airports)
+        print(catalog["stops"])
     else:
         sys.exit(0)
 sys.exit(0)

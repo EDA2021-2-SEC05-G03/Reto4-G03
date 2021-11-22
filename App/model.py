@@ -28,6 +28,7 @@
 import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
+from DISClib.ADT.graph import gr
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
 assert cf
@@ -39,6 +40,36 @@ los mismos.
 
 # Construccion de modelos
 
+def newCatalog():
+    catalog = {
+                'stops': None,
+                'connections': None,
+                'components': None,
+                'paths': None
+                }
+
+    catalog['stops'] = mp.newMap(numelements=14000,
+                                     maptype='PROBING',
+                                     comparefunction=compareIATA)
+
+    catalog['connections'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              comparefunction=compareIATA)
+    return catalog
+
+def addAirport(catalog,airport):
+    
+    map = catalog['stops']
+    entry = mp.get(map, airport["IATA"])
+    if entry is None:    
+        mp.put(map,airport["IATA"],airport["Name"])
+        
+    if not gr.containsVertex(catalog['connections'], airport["IATA"]):
+        gr.insertVertex(catalog['connections'], airport["IATA"])
+    return catalog
+
+
 # Funciones para agregar informacion al catalogo
 
 # Funciones para creacion de datos
@@ -48,3 +79,16 @@ los mismos.
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 # Funciones de ordenamiento
+
+
+def compareIATA(stop, keyvaluestop):
+    """
+    Compara IATAS
+    """
+    stopcode = keyvaluestop['key']
+    if (stop == stopcode):
+        return 0
+    elif (stop > stopcode):
+        return 1
+    else:
+        return -1
