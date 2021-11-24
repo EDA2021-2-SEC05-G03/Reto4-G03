@@ -28,6 +28,7 @@
 import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
+from DISClib.ADT import orderedmap as om
 from DISClib.ADT.graph import gr
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
@@ -42,32 +43,81 @@ los mismos.
 
 def newCatalog():
     catalog = {
-                'stops': None,
-                'connections': None,
-                'components': None,
+                'IATAS': None,
+                'routes': None,
+                'city': None,
+                'connected': None,
                 'paths': None
                 }
 
-    catalog['stops'] = mp.newMap(numelements=14000,
+    catalog['IATAS'] = mp.newMap(numelements=14000,
                                      maptype='PROBING',
                                      comparefunction=compareIATA)
 
-    catalog['connections'] = gr.newGraph(datastructure='ADJ_LIST',
+    catalog['routes'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
                                               comparefunction=compareIATA)
+
+    catalog["cities"] = lt.newList(datastructure="ARRAY_LIST")
+
+    catalog["path"] = mp.newMap(numelements=100000,maptype="LINEAR_PROBING",loadfactor=0.95)
+    
+    catalog['connected'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=False,
+                                              size=14000,
+                                              comparefunction=compareIATA) 
     return catalog
 
 def addAirport(catalog,airport):
     
-    map = catalog['stops']
+    map = catalog['IATAS']
     entry = mp.get(map, airport["IATA"])
     if entry is None:    
         mp.put(map,airport["IATA"],airport["Name"])
         
-    if not gr.containsVertex(catalog['connections'], airport["IATA"]):
-        gr.insertVertex(catalog['connections'], airport["IATA"])
+    if not gr.containsVertex(catalog['routes'], airport["IATA"]):
+        gr.insertVertex(catalog['routes'], airport["IATA"])
     return catalog
+
+def addRoute(catalog, route):
+    origen = route["Departure"]
+    destino = route["Destination"]
+    dist = route["distance_km"]
+
+    #se agregan los arcos sin repetir al digrafo
+    edge = gr.getEdge(catalog['routes'], origen, destino)
+    if edge is None:
+        gr.addEdge(catalog['routes'], origen, destino, dist)
+
+    #se revisa si en el digrafo hay un arco de vuelta
+    edge1 = gr.getEdge(catalog['routes'], destino, origen)    
+
+    if edge1 != None:       
+        #si hay un arco de vuelta significa que hay ruta de ida y vuelta y se agrega al grafo no dirigido
+        
+        if not gr.containsVertex(catalog['connected'], origen):
+            gr.insertVertex(catalog['connected'], origen)
+        if not gr.containsVertex(catalog['connected'], destino):
+            gr.insertVertex(catalog['connected'], destino)
+
+        edge2 = gr.getEdge(catalog['connected'], origen, destino)
+        
+        if edge2 is None:
+            gr.addEdge(catalog['connected'], origen, destino, dist)
+    
+
+def addCity(catalog, route):
+
+    city = route["City"].strip(" ")
+    cities = catalog["cities"]
+    
+    pos = lt.isPresent(cities, city)
+    
+    if pos < 1:    
+        lt.addLast(cities,city)
+
+
 
 
 # Funciones para agregar informacion al catalogo

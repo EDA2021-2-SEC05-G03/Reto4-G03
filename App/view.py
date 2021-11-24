@@ -24,6 +24,7 @@ import config as cf
 import sys
 import controller
 from DISClib.ADT import list as lt
+from DISClib.ADT.graph import gr
 assert cf
 
 
@@ -64,8 +65,19 @@ while True:
         print("Cargando información de los archivos ....")
 
     elif int(inputs[0]) == 2:
-        controller.loadData(catalog,airports)
-        print(catalog["stops"])
+        controller.loadDataAir(catalog,airports)
+        controller.loadDataRoute(catalog,routes)
+        print("--GRAFO DIRIGIDO--")
+        print("El total de aeropuertos es de: "+str(gr.numVertices(catalog["routes"])))
+        print("El total de rutas aéreas es de: "+str(gr.numEdges(catalog["routes"])))
+        print(" ")
+        print("--GRAFO NO DIRIGIDO--")
+        print("El total de aeropuertos es de: "+str(gr.numVertices(catalog["connected"])))
+        print("El total de rutas aéreas que tienen ida y vuelta es de:" + str(gr.numEdges(catalog["connected"])))
+        print(" ")        
+        print("El total de ciudades es de: "+ str(lt.size(catalog["cities"])))
+        
+
     else:
         sys.exit(0)
 sys.exit(0)

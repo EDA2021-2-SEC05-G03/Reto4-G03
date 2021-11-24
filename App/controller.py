@@ -37,12 +37,21 @@ def init():
     catalog = model.newCatalog()
     return catalog
 
-def loadData(catalog,airportsfile):
+def loadDataAir(catalog,airportsfile):
     servicesfile = cf.data_dir + airportsfile
     input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
                                 delimiter=",")
     for airport in input_file:
         model.addAirport(catalog,airport) 
+        model.addCity(catalog,airport)
+
+def loadDataRoute(catalog,routesfile):
+    servicesfile = cf.data_dir + routesfile
+    input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
+                                delimiter=",")
+    for route in input_file:      
+        model.addRoute(catalog, route) 
+       
 
 
 # Funciones para la carga de datos
