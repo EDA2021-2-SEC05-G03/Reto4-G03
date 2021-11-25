@@ -43,7 +43,7 @@ def loadDataAir(catalog,airportsfile):
                                 delimiter=",")
     for airport in input_file:
         model.addAirport(catalog,airport) 
-        model.addCity(catalog,airport)
+        
 
 def loadDataRoute(catalog,routesfile):
     servicesfile = cf.data_dir + routesfile
@@ -52,7 +52,13 @@ def loadDataRoute(catalog,routesfile):
     for route in input_file:      
         model.addRoute(catalog, route) 
        
-
+def loadDataCities(catalog,cityfile):
+    servicesfile = cf.data_dir + cityfile
+    input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
+                                delimiter=",")
+    for city in input_file:      
+        model.addCity(catalog,city)
+       
 
 # Funciones para la carga de datos
 

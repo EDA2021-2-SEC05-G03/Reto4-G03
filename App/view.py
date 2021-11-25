@@ -50,7 +50,7 @@ def printMenu():
 catalog = None
 routes = 'routes_full.csv'
 airports = 'airports_full.csv'
-cities = 'worlcities'
+cities = 'worldcities.csv'
 
 """
 Menu principal
@@ -67,6 +67,7 @@ while True:
     elif int(inputs[0]) == 2:
         controller.loadDataAir(catalog,airports)
         controller.loadDataRoute(catalog,routes)
+        controller.loadDataCities(catalog,cities)
         print("--GRAFO DIRIGIDO--")
         print("El total de aeropuertos es de: "+str(gr.numVertices(catalog["routes"])))
         print("El total de rutas aéreas es de: "+str(gr.numEdges(catalog["routes"])))

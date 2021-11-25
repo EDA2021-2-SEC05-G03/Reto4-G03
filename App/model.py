@@ -47,7 +47,7 @@ def newCatalog():
                 'routes': None,
                 'city': None,
                 'connected': None,
-                'paths': None
+                'path': None
                 }
 
     catalog['IATAS'] = mp.newMap(numelements=14000,
@@ -94,8 +94,7 @@ def addRoute(catalog, route):
     edge1 = gr.getEdge(catalog['routes'], destino, origen)    
 
     if edge1 != None:       
-        #si hay un arco de vuelta significa que hay ruta de ida y vuelta y se agrega al grafo no dirigido
-        
+        #si hay un arco de vuelta significa que hay ruta de ida y vuelta y se agrega al grafo no dirigido       
         if not gr.containsVertex(catalog['connected'], origen):
             gr.insertVertex(catalog['connected'], origen)
         if not gr.containsVertex(catalog['connected'], destino):
@@ -109,13 +108,10 @@ def addRoute(catalog, route):
 
 def addCity(catalog, route):
 
-    city = route["City"].strip(" ")
+    city = route["city_ascii"]
     cities = catalog["cities"]
     
-    pos = lt.isPresent(cities, city)
-    
-    if pos < 1:    
-        lt.addLast(cities,city)
+    lt.addLast(cities,city)
 
 
 
