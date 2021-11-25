@@ -41,8 +41,15 @@ def loadDataAir(catalog,airportsfile):
     servicesfile = cf.data_dir + airportsfile
     input_file = csv.DictReader(open(servicesfile, encoding="utf-8"),
                                 delimiter=",")
+    iteration = 0
+    airportdirigido = None
     for airport in input_file:
         model.addAirport(catalog,airport) 
+        if iteration ==0:
+            airportdirigido = airport
+            iteration += 1
+    return airportdirigido
+
         
 
 def loadDataRoute(catalog,routesfile):

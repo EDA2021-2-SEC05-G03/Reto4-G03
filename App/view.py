@@ -20,13 +20,14 @@
  * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
  """
 
+
 import config as cf
 import sys
 import controller
 from DISClib.ADT import list as lt
 from DISClib.ADT.graph import gr
 assert cf
-
+from DISClib.ADT import map as mp
 
 """
 La vista se encarga de la interacción con el usuario
@@ -65,18 +66,36 @@ while True:
         print("Cargando información de los archivos ....")
 
     elif int(inputs[0]) == 2:
-        controller.loadDataAir(catalog,airports)
+        dirigido = controller.loadDataAir(catalog,airports)
         controller.loadDataRoute(catalog,routes)
         controller.loadDataCities(catalog,cities)
+
         print("--GRAFO DIRIGIDO--")
         print("El total de aeropuertos es de: "+str(gr.numVertices(catalog["routes"])))
         print("El total de rutas aéreas es de: "+str(gr.numEdges(catalog["routes"])))
+        print("El primer aeropuerto cargado fue: " + dirigido["Name"])
+        print("Su ciudad es: " + dirigido["City"])
+        print("Su país es: " + dirigido["Country"])
+        print("Latitud: " + dirigido["Latitude"] + ", Longitud: " + dirigido["Longitude"])
         print(" ")
+
         print("--GRAFO NO DIRIGIDO--")
         print("El total de aeropuertos es de: "+str(gr.numVertices(catalog["connected"])))
         print("El total de rutas aéreas que tienen ida y vuelta es de:" + str(gr.numEdges(catalog["connected"])))
+        llave = lt.firstElement(catalog["salida"])
+        datos = mp.get(catalog["IATAS"], llave)["value"]
+        print("El primer aeropuerto cargado fue: " + datos["Name"])
+        print("Su ciudad es: " + datos["City"])
+        print("Su país es: " + datos["Country"])
+        print("Latitud: " + datos["Latitude"] + ", Longitud: " + datos["Longitude"])
         print(" ")        
+
         print("El total de ciudades es de: "+ str(lt.size(catalog["cities"])))
+        ciudadprimero = lt.firstElement(catalog["cities"])
+        print("La primera ciudad cargada fue " + ciudadprimero["city_ascii"])
+        print("Latitud " + str(ciudadprimero["lat"]) + ", Longitud " + str(ciudadprimero["lng"]))
+        print("Población: " + ciudadprimero["population"])
+        
         
 
     else:

@@ -46,8 +46,9 @@ def newCatalog():
                 'IATAS': None,
                 'routes': None,
                 'city': None,
-                'connected': None,
-                'path': None
+                'connected': None,  
+                'path': None,
+                "salida" : None
                 }
 
     catalog['IATAS'] = mp.newMap(numelements=14000,
@@ -67,6 +68,7 @@ def newCatalog():
                                               directed=False,
                                               size=14000,
                                               comparefunction=compareIATA) 
+    catalog["salida"] = lt.newList()
     return catalog
 
 def addAirport(catalog,airport):
@@ -74,7 +76,7 @@ def addAirport(catalog,airport):
     map = catalog['IATAS']
     entry = mp.get(map, airport["IATA"])
     if entry is None:    
-        mp.put(map,airport["IATA"],airport["Name"])
+        mp.put(map,airport["IATA"],airport)
         
     if not gr.containsVertex(catalog['routes'], airport["IATA"]):
         gr.insertVertex(catalog['routes'], airport["IATA"])
@@ -94,7 +96,8 @@ def addRoute(catalog, route):
     edge1 = gr.getEdge(catalog['routes'], destino, origen)    
 
     if edge1 != None:       
-        #si hay un arco de vuelta significa que hay ruta de ida y vuelta y se agrega al grafo no dirigido       
+        #si hay un arco de vuelta significa que hay ruta de ida y vuelta y se agrega al grafo no dirigido   
+        lt.addLast(catalog["salida"], origen)    
         if not gr.containsVertex(catalog['connected'], origen):
             gr.insertVertex(catalog['connected'], origen)
         if not gr.containsVertex(catalog['connected'], destino):
@@ -108,7 +111,7 @@ def addRoute(catalog, route):
 
 def addCity(catalog, route):
 
-    city = route["city_ascii"]
+    city = route
     cities = catalog["cities"]
     
     lt.addLast(cities,city)
