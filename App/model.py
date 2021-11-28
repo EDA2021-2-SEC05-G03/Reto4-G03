@@ -30,6 +30,7 @@ from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.ADT import orderedmap as om
 from DISClib.ADT.graph import gr
+from DISClib.Algorithms.Graphs import scc 
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
 assert cf
@@ -48,7 +49,8 @@ def newCatalog():
                 'city': None,
                 'connected': None,  
                 'path': None,
-                "salida" : None
+                'salida' : None,
+                'scc': None
                 }
 
     catalog['IATAS'] = mp.newMap(numelements=14000,
@@ -68,7 +70,9 @@ def newCatalog():
                                               directed=False,
                                               size=14000,
                                               comparefunction=compareIATA) 
+
     catalog["salida"] = lt.newList()
+
     return catalog
 
 def addAirport(catalog,airport):
@@ -117,7 +121,23 @@ def addCity(catalog, route):
     lt.addLast(cities,city)
 
 
+def requerimiento2(catalog, IATA1, IATA2):
 
+    g = catalog["routes"]
+
+    catalog["scc"] = scc.KosarajuSCC(g)
+
+    componentes = scc.connectedComponents(catalog["scc"])
+
+    mismo = scc.stronglyConnected(catalog["scc"], IATA1, IATA2)
+    print(" ")
+    print("El total de clústeres en la red de transporte aéreo es de:  "+ str(componentes))
+    
+    if mismo:
+        print("Los aeropuertos ingresados -SI- corresponden al mismo clúster aéreo")
+    else:
+        print("Los aeropuertos ingresados -NO- corresponden al mismo clúster aéreo")
+    print(" ")
 
 # Funciones para agregar informacion al catalogo
 

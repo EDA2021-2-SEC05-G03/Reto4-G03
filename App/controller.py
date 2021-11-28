@@ -66,7 +66,8 @@ def loadDataCities(catalog,cityfile):
     for city in input_file:      
         model.addCity(catalog,city)
        
-
+def req2(catalog, air1, air2):
+    model.requerimiento2(catalog, air1, air2)
 # Funciones para la carga de datos
 
 # Funciones de ordenamiento
