@@ -100,8 +100,8 @@ def thread_cycle():
             
 
         elif int(inputs[0]) == 4:  
-            air1 = input("Ingrese el IATA del primer aeropuerto")
-            air2 = input("Ingrese el IATA del segundo aeropuerto")
+            air1 = input("Ingrese el IATA del primer aeropuerto: ")
+            air2 = input("Ingrese el IATA del segundo aeropuerto: ")
             controller.req2(catalog, air1, air2)
             
         else:
