@@ -49,13 +49,10 @@ def printMenu():
     print("7- Requerimiento 5 (Grupal): Cuantificar el efecto de un aeropuerto cerrado")
     print("8- Requerimiento 6 (BONO Grupal): Comparar con servicio WEB externo")
 
-
 catalog = None
 routes = 'routes_full.csv'
 airports = 'airports_full.csv'
 cities = 'worldcities.csv'
-
-
 
 """
 Menu principal
@@ -81,6 +78,7 @@ def thread_cycle():
             print("Su país es: " + dirigido["Country"])
             print("Latitud: " + dirigido["Latitude"] + ", Longitud: " + dirigido["Longitude"])
             print(" ")
+
             print("--GRAFO NO DIRIGIDO--")
             print("El total de aeropuertos es de: "+str(gr.numVertices(catalog["connected"])))
             print("El total de rutas aéreas que tienen ida y vuelta es de:" + str(gr.numEdges(catalog["connected"])))
@@ -98,11 +96,22 @@ def thread_cycle():
             print("Latitud " + str(ciudadprimero["lat"]) + ", Longitud " + str(ciudadprimero["lng"]))
             print("Población: " + ciudadprimero["population"])
             
-
         elif int(inputs[0]) == 4:  
             air1 = input("Ingrese el IATA del primer aeropuerto: ")
             air2 = input("Ingrese el IATA del segundo aeropuerto: ")
             controller.req2(catalog, air1, air2)
+        
+        elif int(input[0]) == 5:
+            origin = "Por favor digite la ciudad de origen: "
+            if lt.isPresent(catalog['repeat'],origin):
+                print("La ciudad que usted busca tiene mas de un posible resultado.")
+                input("Por favor digite el nombre de la ciudad, seguido por su país en este formato: City-Country. ")
+            destiny = "Por favor digite la ciudad de destino: "
+            if lt.isPresent(catalog['repeat'],destiny):
+                print("La ciudad que usted busca tiene mas de un posible resultado.")
+                input("Por favor digite el nombre de la ciudad, seguido por su país en este formato: City-Country. ")
+
+
             
         else:
             sys.exit(0)

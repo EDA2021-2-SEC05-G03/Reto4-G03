@@ -30,12 +30,15 @@ El controlador se encarga de mediar entre la vista y el modelo.
 """
 
 # Inicialización del Catálogo
+
 def init():
     """
     Llama la funcion de inicializacion  del modelo.
     """
     catalog = model.newCatalog()
     return catalog
+
+# Funciones para la carga de datos
 
 def loadDataAir(catalog,airportsfile):
     servicesfile = cf.data_dir + airportsfile
@@ -49,8 +52,6 @@ def loadDataAir(catalog,airportsfile):
             airportdirigido = airport
             iteration += 1
     return airportdirigido
-
-        
 
 def loadDataRoute(catalog,routesfile):
     servicesfile = cf.data_dir + routesfile
@@ -66,10 +67,9 @@ def loadDataCities(catalog,cityfile):
     for city in input_file:      
         model.addCity(catalog,city)
        
-def req2(catalog, air1, air2):
-    model.requerimiento2(catalog, air1, air2)
-# Funciones para la carga de datos
-
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+
+def req2(catalog, air1, air2):
+    model.requerimiento2(catalog, air1, air2)

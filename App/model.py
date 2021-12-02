@@ -50,7 +50,10 @@ def newCatalog():
                 'connected': None,  
                 'path': None,
                 'salida' : None,
-                'scc': None
+                'scc': None,
+                'repeat': None,
+                'cities2':None
+
                 }
 
     catalog['IATAS'] = mp.newMap(numelements=14000,
@@ -62,7 +65,7 @@ def newCatalog():
                                               size=14000,
                                               comparefunction=compareIATA)
 
-    catalog["cities"] = lt.newList(datastructure="ARRAY_LIST")
+    catalog["cities"] = lt.newList(datastructure="ARRAYLIST")
 
     catalog["path"] = mp.newMap(numelements=100000,maptype="LINEAR_PROBING",loadfactor=0.95)
     
@@ -72,6 +75,8 @@ def newCatalog():
                                               comparefunction=compareIATA) 
 
     catalog["salida"] = lt.newList()
+    catalog['repeat'] = lt.newList()
+    catalog['cities2'] = mp.newMap(maptype="PROBING", numelements= 41002)
 
     return catalog
 
@@ -114,11 +119,25 @@ def addRoute(catalog, route):
     
 
 def addCity(catalog, route):
-
     city = route
     cities = catalog["cities"]
-    
     lt.addLast(cities,city)
+
+    city = route["city_ascii"]
+    cities = catalog["cities2"]
+    present = mp.contains(cities,city)
+    if not present:
+        mp.put(cities,city,route)
+    else:
+        lt.addLast(catalog['repeat'], city)
+        city = city +"-"+ route['country']
+        present= mp.contains(cities,city)
+        if not present:
+            mp.put(cities,city,route)
+        else:
+            city = city + '-' + route["id"]
+            mp.put(cities,city,route)
+        
 
 
 def requerimiento2(catalog, IATA1, IATA2):
