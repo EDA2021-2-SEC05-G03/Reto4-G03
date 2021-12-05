@@ -64,32 +64,24 @@ def newCatalog():
                                               directed=True,
                                               size=14000,
                                               comparefunction=compareIATA)
-
-    catalog["cities"] = lt.newList(datastructure="ARRAYLIST")
-
-    catalog["path"] = mp.newMap(numelements=100000,maptype="LINEAR_PROBING",loadfactor=0.95)
-    
     catalog['connected'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=False,
                                               size=14000,
-                                              comparefunction=compareIATA) 
-
+                                              comparefunction=compareIATA)
+    catalog["cities"] = lt.newList(datastructure="ARRAYLIST")
+    catalog["path"] = mp.newMap(numelements=100000,maptype="LINEAR_PROBING",loadfactor=0.95)
     catalog["salida"] = lt.newList()
     catalog['repeat'] = lt.newList()
     catalog['cities2'] = mp.newMap(maptype="PROBING", numelements= 41002)
 
     return catalog
 
-def addAirport(catalog,airport):
-    
+def addAirport(catalog,airport): 
+    lt.addLast(catalog['salida'],airport["IATA"])
     map = catalog['IATAS']
-    entry = mp.get(map, airport["IATA"])
-    if entry is None:    
-        mp.put(map,airport["IATA"],airport)
-        
-    if not gr.containsVertex(catalog['routes'], airport["IATA"]):
-        gr.insertVertex(catalog['routes'], airport["IATA"])
-    return catalog
+    mp.put(map,airport["IATA"],airport)       
+    gr.insertVertex(catalog['routes'], airport["IATA"])
+    gr.insertVertex(catalog['connected'], airport["IATA"])
 
 def addRoute(catalog, route):
     origen = route["Departure"]
@@ -97,25 +89,19 @@ def addRoute(catalog, route):
     dist = route["distance_km"]
 
     #se agregan los arcos sin repetir al digrafo
-    edge = gr.getEdge(catalog['routes'], origen, destino)
-    if edge is None:
-        gr.addEdge(catalog['routes'], origen, destino, dist)
+    gr.addEdge(catalog['routes'], origen, destino, dist)
 
     #se revisa si en el digrafo hay un arco de vuelta
     edge1 = gr.getEdge(catalog['routes'], destino, origen)    
 
     if edge1 != None:       
         #si hay un arco de vuelta significa que hay ruta de ida y vuelta y se agrega al grafo no dirigido   
-        lt.addLast(catalog["salida"], origen)    
-        if not gr.containsVertex(catalog['connected'], origen):
-            gr.insertVertex(catalog['connected'], origen)
-        if not gr.containsVertex(catalog['connected'], destino):
-            gr.insertVertex(catalog['connected'], destino)
-
-        edge2 = gr.getEdge(catalog['connected'], origen, destino)
-        
-        if edge2 is None:
+        edge2 = gr.getEdge(catalog['connected'], destino, origen)      
+        if edge2 == None:
             gr.addEdge(catalog['connected'], origen, destino, dist)
+        else:
+            if edge2['weight'] != dist and (origen == edge2['vertexA'] or origen == edge2['vertexB'])  and (destino == edge2['vertexA'] or destino == edge2['vertexB']):
+                gr.addEdge(catalog['connected'], origen, destino, dist)
     
 
 def addCity(catalog, route):

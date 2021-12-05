@@ -50,9 +50,9 @@ def printMenu():
     print("8- Requerimiento 6 (BONO Grupal): Comparar con servicio WEB externo")
 
 catalog = None
-routes = 'routes_full.csv'
-airports = 'airports_full.csv'
-cities = 'worldcities.csv'
+routes = 'routes-utf8-small.csv'
+airports = 'airports-utf8-small.csv'
+cities = 'worldcities-utf8.csv'
 
 """
 Menu principal
@@ -66,30 +66,45 @@ def thread_cycle():
             print("Cargando información de los archivos ....")
 
         elif int(inputs[0]) == 2:
-            dirigido = controller.loadDataAir(catalog,airports)
+            controller.loadDataAir(catalog,airports)
             controller.loadDataRoute(catalog,routes)
             controller.loadDataCities(catalog,cities)
 
-            print("--GRAFO DIRIGIDO--")
-            print("El total de aeropuertos es de: "+str(gr.numVertices(catalog["routes"])))
-            print("El total de rutas aéreas es de: "+str(gr.numEdges(catalog["routes"])))
-            print("El primer aeropuerto cargado fue: " + dirigido["Name"])
-            print("Su ciudad es: " + dirigido["City"])
-            print("Su país es: " + dirigido["Country"])
-            print("Latitud: " + dirigido["Latitude"] + ", Longitud: " + dirigido["Longitude"])
-            print(" ")
-
-            print("--GRAFO NO DIRIGIDO--")
-            print("El total de aeropuertos es de: "+str(gr.numVertices(catalog["connected"])))
-            print("El total de rutas aéreas que tienen ida y vuelta es de:" + str(gr.numEdges(catalog["connected"])))
+            print("---GRAFO DIRIGIDO---")
+            print("Nodes: El total de aeropuertos es de: "+str(gr.numVertices(catalog["routes"])))
+            print("Edges: El total de rutas aéreas es de: "+str(gr.numEdges(catalog["routes"])))
             llave = lt.firstElement(catalog["salida"])
             datos = mp.get(catalog["IATAS"], llave)["value"]
             print("El primer aeropuerto cargado fue: " + datos["Name"])
             print("Su ciudad es: " + datos["City"])
             print("Su país es: " + datos["Country"])
             print("Latitud: " + datos["Latitude"] + ", Longitud: " + datos["Longitude"])
+            llave = lt.lastElement(catalog["salida"])
+            datos = mp.get(catalog["IATAS"], llave)["value"]
+            print("El último aeropuerto cargado fue: " + datos["Name"])
+            print("Su ciudad es: " + datos["City"])
+            print("Su país es: " + datos["Country"])
+            print("Latitud: " + datos["Latitude"] + ", Longitud: " + datos["Longitude"])
+            print(" ")      
+
+            print("---GRAFO NO DIRIGIDO---")
+            print("Nodes: El total de aeropuertos es de: "+str(gr.numVertices(catalog["connected"])))
+            print("Edges: El total de rutas aéreas que tienen ida y vuelta es de:" + str(gr.numEdges(catalog["connected"])))
+            llave = lt.firstElement(catalog["salida"])
+            datos = mp.get(catalog["IATAS"], llave)["value"]
+            print("El primer aeropuerto cargado fue: " + datos["Name"])
+            print("Su ciudad es: " + datos["City"])
+            print("Su país es: " + datos["Country"])
+            print("Latitud: " + datos["Latitude"] + ", Longitud: " + datos["Longitude"])
+            llave = lt.lastElement(catalog["salida"])
+            datos = mp.get(catalog["IATAS"], llave)["value"]
+            print("El último aeropuerto cargado fue: " + datos["Name"])
+            print("Su ciudad es: " + datos["City"])
+            print("Su país es: " + datos["Country"])
+            print("Latitud: " + datos["Latitude"] + ", Longitud: " + datos["Longitude"])
             print(" ")        
 
+            print('--- Ciudades ---')
             print("El total de ciudades es de: "+ str(lt.size(catalog["cities"])))
             ciudadprimero = lt.firstElement(catalog["cities"])
             print("La primera ciudad cargada fue " + ciudadprimero["city_ascii"])
@@ -100,7 +115,14 @@ def thread_cycle():
             air1 = input("Ingrese el IATA del primer aeropuerto: ")
             air2 = input("Ingrese el IATA del segundo aeropuerto: ")
             controller.req2(catalog, air1, air2)
-        
+
+        elif int(inputs[0]) == 3:
+            print('=============== Req. 1 Inputs ===============')
+            print('most connected airports in network (TOP 5)')
+            print("Numbers of airports in network: " + str(mp.size(catalog['IATAS'])))
+            print('=============== Req. 1 Outputs ===============')
+
+
         elif int(input[0]) == 5:
             origin = "Por favor digite la ciudad de origen: "
             if lt.isPresent(catalog['repeat'],origin):
@@ -110,9 +132,7 @@ def thread_cycle():
             if lt.isPresent(catalog['repeat'],destiny):
                 print("La ciudad que usted busca tiene mas de un posible resultado.")
                 input("Por favor digite el nombre de la ciudad, seguido por su país en este formato: City-Country. ")
-
-
-            
+         
         else:
             sys.exit(0)
     sys.exit(0)
