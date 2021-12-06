@@ -138,6 +138,23 @@ def thread_cycle():
             millas = "1985.00" #input("Ingrese las millas de viajero disponibles: ")
             controller.req4(catalog,city,millas)
 
+        elif int(inputs[0]) == 7:  
+            iata = input("Ingrese el IATA del aeropuerto fuera de funcionamiento: ")
+            tab = controller.req5(catalog,iata)
+            city = catalog["IATAS"]
+            print("+"+("-"*91)+"+")
+            print("|"+"IATA".center(6)+"|"+"Name".center(50)+" | "+ "City".center(30)+" | ")
+            print("+"+("-"*91)+"+")
+            for i in lt.iterator(tab[0]):
+                d = mp.get(city,i)["value"]
+                print("|"+str(i).center(6)+"|"+str(d["Name"]).center(50)+" | "+ d["City"].center(30)+" | ")
+                print("+"+("-"*91)+"+")
+
+            for i in lt.iterator(tab[1]):
+                d = mp.get(city,i)["value"]
+                print("|"+str(i).center(6)+"|"+str(d["Name"]).center(50)+" | "+ d["City"].center(30)+" | ")
+                print("+"+("-"*91)+"+")
+                
         elif int(input[0]) == 5:
             origin = "Por favor digite la ciudad de origen: "
             if lt.isPresent(catalog['repeat'],origin):

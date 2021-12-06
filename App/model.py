@@ -33,6 +33,8 @@ from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Graphs import scc 
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
+from DISClib.Algorithms.Graphs import prim
+
 assert cf
 
 """
@@ -61,6 +63,10 @@ def newCatalog():
                                      maptype='PROBING',
                                      comparefunction=compareIATA)
 
+    catalog['AN-ID'] = mp.newMap(numelements=14000,
+                                     maptype='PROBING',
+                                     comparefunction=compareIATA)
+
     catalog['routes'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
@@ -83,6 +89,7 @@ def addAirport(catalog,airport):
     lt.addLast(catalog['salida'],airport["IATA"])
     map = catalog['IATAS']
     mp.put(map,airport["IATA"],airport)       
+    mp.put(catalog["AN-ID"],airport["Name"],airport["IATA"])    
     gr.insertVertex(catalog['routes'], airport["IATA"])
     gr.insertVertex(catalog['connected'], airport["IATA"])
 
@@ -98,7 +105,7 @@ def addRoute(catalog, route):
         lt.addLast(catalog["withroutes"], destino)
 
     #se agregan los arcos sin repetir al digrafo
-    gr.addEdge(catalog['routes'], origen, destino, dist)
+    gr.addEdge(catalog['routes'], origen, destino, float(dist))
 
 
     #se revisa si en el digrafo hay un arco de vuelta
@@ -135,23 +142,7 @@ def addCity(catalog, route):
         
 
 
-def requerimiento2(catalog, IATA1, IATA2):
 
-    g = catalog["routes"]
-
-    catalog["scc"] = scc.KosarajuSCC(g)
-
-    componentes = scc.connectedComponents(catalog["scc"])
-
-    mismo = scc.stronglyConnected(catalog["scc"], IATA1, IATA2)
-    print(" ")
-    print("El total de clústeres en la red de transporte aéreo es de:  "+ str(componentes))
-    
-    if mismo:
-        print("Los aeropuertos ingresados -SI- corresponden al mismo clúster aéreo")
-    else:
-        print("Los aeropuertos ingresados -NO- corresponden al mismo clúster aéreo")
-    print(" ")
 
 # Funciones para agregar informacion al catalogo
 
@@ -178,6 +169,81 @@ def req1 (catalog):
         om.deleteMax(best5)
     return (connected,listasalida)
 
+def requerimiento2(catalog, IATA1, IATA2):
+
+    g = catalog["routes"]
+
+    catalog["scc"] = scc.KosarajuSCC(g)
+
+    componentes = scc.connectedComponents(catalog["scc"])
+
+    mismo = scc.stronglyConnected(catalog["scc"], IATA1, IATA2)
+    print(" ")
+    print("El total de clústeres en la red de transporte aéreo es de:  "+ str(componentes))
+    
+    if mismo:
+        print("Los aeropuertos ingresados -SI- corresponden al mismo clúster aéreo")
+    else:
+        print("Los aeropuertos ingresados -NO- corresponden al mismo clúster aéreo")
+    print(" ")
+
+def req4(catalog, origen, millas):
+
+    mst = prim.PrimMST(catalog["routes"])
+    arbol = mst["mst"]
+    weight = prim.weightMST(catalog["routes"],mst)
+    #print(arbol,weight)
+
+    '''
+    for i in lt.iterator(arbol):
+        if i["vertexA"]==origen or i["vertexB"]==origen:
+            print(i)
+    '''
+    
+    for i in lt.iterator(arbol):
+        print(i)
+    
+    pos_air = int(arbol["size"])
+    print()
+    print("El numero de posibles aeropuertos es de: "+ str(pos_air))
+    
+    km = float(millas) * 1.60
+    print("El total de millas en kilometros del usuario es de: "+ str(km) + " km" + str(weight))
+
+
+def req5(catalog,air):
+    afectados = gr.degree(catalog["routes"],air)
+    arcos = gr.adjacents(catalog["routes"], air)
+    print("El total de aeropuertos afectados es de -"+str(afectados)+ "- si el aeropuerto "+ air +" se encuentra cerrado " )
+    print("Los primeros y ultimos 3 aeropuertos afectados son:")
+
+    prin2 = lt.newList(datastructure="ARRAY_LIST")
+
+    s = lt.size(arcos)
+    f = s-3
+    while s > f:
+        elm = lt.lastElement(arcos)
+        p = lt.isPresent(prin2,elm)
+        if p == 0:
+            lt.addFirst(prin2,elm )      
+            lt.removeLast(arcos)  
+            s = lt.size(arcos)
+        else:
+            lt.removeLast(prin2)  
+
+    prin1 = lt.newList(datastructure="ARRAY_LIST")
+    c = 0  
+    for i in lt.iterator(arcos):
+        p = lt.isPresent(prin1,i)
+        if c < 3 and p == 0:
+            lt.addLast(prin1,i)         
+            c+=1          
+        elif p != 0:
+            None
+        else:
+            break
+
+    return prin1,prin2
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
@@ -197,7 +263,9 @@ def compareIATA(stop, keyvaluestop):
         return -1
 
 def compareroutes(airport1,airport2):
-    #Función de comparación requerimiento 1
+    """
+    Función de comparación requerimiento 1
+    """
     airport1 = airport1['degree']
     airport2 = airport2['degree']
     if airport1 == airport2:

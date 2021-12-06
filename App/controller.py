@@ -65,6 +65,8 @@ def loadDataCities(catalog,cityfile):
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+def req1(catalog):
+    return model.req1(catalog)
 
 def req2(catalog, air1, air2):
     model.requerimiento2(catalog, air1, air2)
@@ -72,5 +74,5 @@ def req2(catalog, air1, air2):
 def req4(catalog, origen, millas):
     return model.req4(catalog, origen, millas)
 
-def req1(catalog):
-    return model.req1(catalog)
+def req5(catalog,iata):
+    return model.req5(catalog,iata)
