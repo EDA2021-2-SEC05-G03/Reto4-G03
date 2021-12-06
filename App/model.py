@@ -161,15 +161,14 @@ def requerimiento2(catalog, IATA1, IATA2):
 
 def req1 (catalog):
     listIATAS = catalog['withroutes']
-    best5 = om.newMap(maptype = "RBT", comparefunction= compareroutes)
+    best5 = om.newMap(omaptype = "RBT", comparefunction= compareroutes)
     for airport in lt.iterator(listIATAS):
         airportinfo = mp.get(catalog["IATAS"],airport)['value']
-        degree = gr.degree(catalog['routes'],airport)
         indegree =  gr.indegree(catalog['routes'],airport)
         outdegree = gr.outdegree(catalog['routes'],airport)
-        airportinfo["degree"] = degree
         airportinfo["indegree"] = indegree
         airportinfo["outdegree"] = outdegree
+        airportinfo["degree"] = indegree + outdegree
         om.put(best5,airportinfo,airportinfo)
     connected = lt.size(listIATAS)
     listasalida = lt.newList(datastructure="ARRAY_LIST")

@@ -124,8 +124,13 @@ def thread_cycle():
             print("Numbers of airports in network: " + str(mp.size(catalog['IATAS'])))
             info = controller.req1(catalog)
             print('=============== Req. 1 Outputs ===============')
-            print('Connected airports inside network: ')
+            print('Connected airports inside network: ' + str(info[0]))
             print("Top 5 most connected airports..")
+            for x in lt.iterator(info[1]):
+                print(x["Name"])
+                print(x["degree"])
+                print(x["indegree"])
+                print(x["outdegree"])
 
 
         elif int(inputs[0]) == 6:  
