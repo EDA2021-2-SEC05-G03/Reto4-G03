@@ -33,9 +33,6 @@ from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Graphs import scc 
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
-from DISClib.Algorithms.Graphs import prim
-from DISClib.Algorithms.Graphs import dijsktra as djk
-
 assert cf
 
 """
@@ -48,7 +45,6 @@ los mismos.
 def newCatalog():
     catalog = {
                 'IATAS': None,
-                'AN-ID': None,
                 'routes': None,
                 'city': None,
                 'connected': None,  
@@ -56,7 +52,8 @@ def newCatalog():
                 'salida' : None,
                 'scc': None,
                 'repeat': None,
-                'cities2':None
+                'cities2':None,
+                'withroutes': None,
 
                 }
 
@@ -64,33 +61,28 @@ def newCatalog():
                                      maptype='PROBING',
                                      comparefunction=compareIATA)
 
-    catalog['AN-ID'] = mp.newMap(numelements=14000,
-                                     maptype='PROBING',
-                                     comparefunction=compareIATA)
-
     catalog['routes'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
                                               comparefunction=compareIATA)
-
     catalog['connected'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=False,
                                               size=14000,
                                               comparefunction=compareIATA)
-
     catalog["cities"] = lt.newList(datastructure="ARRAYLIST")
     catalog["path"] = mp.newMap(numelements=100000,maptype="LINEAR_PROBING",loadfactor=0.95)
     catalog["salida"] = lt.newList()
     catalog['repeat'] = lt.newList()
     catalog['cities2'] = mp.newMap(maptype="PROBING", numelements= 41002)
+    catalog['withroutes'] = lt.newList(datastructure="SINGLE_LINKED")
 
     return catalog
+
 
 def addAirport(catalog,airport): 
     lt.addLast(catalog['salida'],airport["IATA"])
     map = catalog['IATAS']
-    mp.put(map,airport["IATA"],airport)   
-    mp.put(catalog["AN-ID"],airport["Name"],airport["IATA"])    
+    mp.put(map,airport["IATA"],airport)       
     gr.insertVertex(catalog['routes'], airport["IATA"])
     gr.insertVertex(catalog['connected'], airport["IATA"])
 
@@ -98,13 +90,19 @@ def addRoute(catalog, route):
     origen = route["Departure"]
     destino = route["Destination"]
     dist = route["distance_km"]
+    presente = lt.isPresent(catalog['withroutes'],origen)
+    presente2 = lt.isPresent(catalog["withroutes"], destino)
+    if not presente:
+        lt.addLast(catalog['withroutes'], origen)
+    if not presente2:
+        lt.addLast(catalog["withroutes"], destino)
 
     #se agregan los arcos sin repetir al digrafo
-    gr.addEdge(catalog['routes'], origen, destino, float(dist))
+    gr.addEdge(catalog['routes'], origen, destino, dist)
+
 
     #se revisa si en el digrafo hay un arco de vuelta
     edge1 = gr.getEdge(catalog['routes'], destino, origen)    
-
     if edge1 != None:       
         #si hay un arco de vuelta significa que hay ruta de ida y vuelta y se agrega al grafo no dirigido   
         edge2 = gr.getEdge(catalog['connected'], destino, origen)      
@@ -155,36 +153,32 @@ def requerimiento2(catalog, IATA1, IATA2):
         print("Los aeropuertos ingresados -NO- corresponden al mismo clúster aéreo")
     print(" ")
 
-
-def req4(catalog, origen, millas):
-
-    mst = prim.PrimMST(catalog["routes"])
-    arbol = mst["mst"]
-    weight = prim.weightMST(catalog["routes"],mst)
-    #print(arbol,weight)
-
-    '''
-    for i in lt.iterator(arbol):
-        if i["vertexA"]==origen or i["vertexB"]==origen:
-            print(i)
-    '''
-    
-    for i in lt.iterator(arbol):
-        print(i)
-    
-    pos_air = int(arbol["size"])
-    print()
-    print("El numero de posibles aeropuertos es de: "+ str(pos_air))
-    
-    km = float(millas) * 1.60
-    print("El total de millas en kilometros del usuario es de: "+ str(km) + " km" + str(weight))
-
-
 # Funciones para agregar informacion al catalogo
 
-# Funciones para creacion de datos
+# Funciones para creacion de datoss
 
 # Funciones de consulta
+
+def req1 (catalog):
+    listIATAS = catalog['withroutes']
+    best5 = om.newMap(maptype = "RBT", comparefunction= compareroutes)
+    for airport in lt.iterator(listIATAS):
+        airportinfo = mp.get(catalog["IATAS"],airport)['value']
+        degree = gr.degree(catalog['routes'],airport)
+        indegree =  gr.indegree(catalog['routes'],airport)
+        outdegree = gr.outdegree(catalog['routes'],airport)
+        airportinfo["degree"] = degree
+        airportinfo["indegree"] = indegree
+        airportinfo["outdegree"] = outdegree
+        om.put(best5,airportinfo,airportinfo)
+    connected = lt.size(listIATAS)
+    listasalida = lt.newList(datastructure="ARRAY_LIST")
+    for x in range(5):
+        key = om.maxKey(best5)
+        lt.addLast(listasalida,key)
+        om.deleteMax(best5)
+    return (connected,listasalida)
+
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
@@ -202,3 +196,18 @@ def compareIATA(stop, keyvaluestop):
         return 1
     else:
         return -1
+
+def compareroutes(airport1,airport2):
+    #Función de comparación requerimiento 1
+    airport1 = airport1['degree']
+    airport2 = airport2['degree']
+    if airport1 == airport2:
+        return 0
+    elif airport1 > airport2:
+        return 1
+    else:
+        return -1
+
+
+
+

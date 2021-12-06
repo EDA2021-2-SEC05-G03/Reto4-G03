@@ -122,7 +122,11 @@ def thread_cycle():
             print('=============== Req. 1 Inputs ===============')
             print('most connected airports in network (TOP 5)')
             print("Numbers of airports in network: " + str(mp.size(catalog['IATAS'])))
+            info = controller.req1(catalog)
             print('=============== Req. 1 Outputs ===============')
+            print('Connected airports inside network: ')
+            print("Top 5 most connected airports..")
+
 
         elif int(inputs[0]) == 6:  
             city = "LIS" #input("Ingrese la ciudad de origen: ")
