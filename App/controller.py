@@ -68,6 +68,6 @@ def loadDataCities(catalog,cityfile):
 
 def req2(catalog, air1, air2):
     model.requerimiento2(catalog, air1, air2)
-    
-def req4(catalog, origen):
-    return model.req4(catalog, origen)
+
+def req4(catalog, origen, millas):
+    return model.req4(catalog, origen, millas)

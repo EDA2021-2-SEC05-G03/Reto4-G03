@@ -33,6 +33,9 @@ from DISClib.ADT.graph import gr
 from DISClib.Algorithms.Graphs import scc 
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
+from DISClib.Algorithms.Graphs import prim
+from DISClib.Algorithms.Graphs import dijsktra as djk
+
 assert cf
 
 """
@@ -45,6 +48,7 @@ los mismos.
 def newCatalog():
     catalog = {
                 'IATAS': None,
+                'AN-ID': None,
                 'routes': None,
                 'city': None,
                 'connected': None,  
@@ -60,14 +64,20 @@ def newCatalog():
                                      maptype='PROBING',
                                      comparefunction=compareIATA)
 
+    catalog['AN-ID'] = mp.newMap(numelements=14000,
+                                     maptype='PROBING',
+                                     comparefunction=compareIATA)
+
     catalog['routes'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
                                               comparefunction=compareIATA)
+
     catalog['connected'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=False,
                                               size=14000,
                                               comparefunction=compareIATA)
+
     catalog["cities"] = lt.newList(datastructure="ARRAYLIST")
     catalog["path"] = mp.newMap(numelements=100000,maptype="LINEAR_PROBING",loadfactor=0.95)
     catalog["salida"] = lt.newList()
@@ -79,7 +89,8 @@ def newCatalog():
 def addAirport(catalog,airport): 
     lt.addLast(catalog['salida'],airport["IATA"])
     map = catalog['IATAS']
-    mp.put(map,airport["IATA"],airport)       
+    mp.put(map,airport["IATA"],airport)   
+    mp.put(catalog["AN-ID"],airport["Name"],airport["IATA"])    
     gr.insertVertex(catalog['routes'], airport["IATA"])
     gr.insertVertex(catalog['connected'], airport["IATA"])
 
@@ -89,7 +100,7 @@ def addRoute(catalog, route):
     dist = route["distance_km"]
 
     #se agregan los arcos sin repetir al digrafo
-    gr.addEdge(catalog['routes'], origen, destino, dist)
+    gr.addEdge(catalog['routes'], origen, destino, float(dist))
 
     #se revisa si en el digrafo hay un arco de vuelta
     edge1 = gr.getEdge(catalog['routes'], destino, origen)    
@@ -143,6 +154,31 @@ def requerimiento2(catalog, IATA1, IATA2):
     else:
         print("Los aeropuertos ingresados -NO- corresponden al mismo clúster aéreo")
     print(" ")
+
+
+def req4(catalog, origen, millas):
+
+    mst = prim.PrimMST(catalog["routes"])
+    arbol = mst["mst"]
+    weight = prim.weightMST(catalog["routes"],mst)
+    #print(arbol,weight)
+
+    '''
+    for i in lt.iterator(arbol):
+        if i["vertexA"]==origen or i["vertexB"]==origen:
+            print(i)
+    '''
+    
+    for i in lt.iterator(arbol):
+        print(i)
+    
+    pos_air = int(arbol["size"])
+    print()
+    print("El numero de posibles aeropuertos es de: "+ str(pos_air))
+    
+    km = float(millas) * 1.60
+    print("El total de millas en kilometros del usuario es de: "+ str(km) + " km" + str(weight))
+
 
 # Funciones para agregar informacion al catalogo
 

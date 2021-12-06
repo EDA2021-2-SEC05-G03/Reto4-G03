@@ -24,6 +24,8 @@
 import config as cf
 import sys
 import controller
+import queryAPI
+import getAccessToken
 from DISClib.ADT import list as lt
 from DISClib.ADT.graph import gr
 assert cf
@@ -122,6 +124,10 @@ def thread_cycle():
             print("Numbers of airports in network: " + str(mp.size(catalog['IATAS'])))
             print('=============== Req. 1 Outputs ===============')
 
+        elif int(inputs[0]) == 6:  
+            city = "LIS" #input("Ingrese la ciudad de origen: ")
+            millas = "1985.00" #input("Ingrese las millas de viajero disponibles: ")
+            controller.req4(catalog,city,millas)
 
         elif int(input[0]) == 5:
             origin = "Por favor digite la ciudad de origen: "
@@ -132,10 +138,7 @@ def thread_cycle():
             if lt.isPresent(catalog['repeat'],destiny):
                 print("La ciudad que usted busca tiene mas de un posible resultado.")
                 input("Por favor digite el nombre de la ciudad, seguido por su país en este formato: City-Country. ")
-        elif int(inputs[0]) == 6:  
-            city = "LED" #input("Ingrese la ciudad de origen: ")
-            millas = "1396.7" #input("Ingrese las millas de viajero disponibles: ")
-            controller.req4(catalog,city)
+      
 
         elif int(inputs[0]) == 8:  
             client_id = input("Ingrese su API Key: ")
@@ -146,7 +149,7 @@ def thread_cycle():
             destino = input("Ingrese la ciudad de destino: ")
 
             queryAPI.queryAPI(token)
-            
+
         else:
             sys.exit(0)
     sys.exit(0)
