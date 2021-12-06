@@ -132,7 +132,21 @@ def thread_cycle():
             if lt.isPresent(catalog['repeat'],destiny):
                 print("La ciudad que usted busca tiene mas de un posible resultado.")
                 input("Por favor digite el nombre de la ciudad, seguido por su país en este formato: City-Country. ")
-         
+        elif int(inputs[0]) == 6:  
+            city = "LED" #input("Ingrese la ciudad de origen: ")
+            millas = "1396.7" #input("Ingrese las millas de viajero disponibles: ")
+            controller.req4(catalog,city)
+
+        elif int(inputs[0]) == 8:  
+            client_id = input("Ingrese su API Key: ")
+            secret = input("Ingrese su API secret: ")
+            getAccessToken.getToken(client_id,secret)
+            token = input("Ingrese su Access Token: ")
+            origen = input("Ingrese la ciudad de origen: ")
+            destino = input("Ingrese la ciudad de destino: ")
+
+            queryAPI.queryAPI(token)
+            
         else:
             sys.exit(0)
     sys.exit(0)
