@@ -71,6 +71,9 @@ def req1(catalog):
 def req2(catalog, air1, air2):
     return model.requerimiento2(catalog, air1, air2)
 
+def req3(catalog, ciudadorigen,ciudaddestino):
+    return model.req3(catalog,ciudadorigen,ciudaddestino)
+
 def req4(catalog, origen, millas):
     return model.req4(catalog, origen, millas)
 

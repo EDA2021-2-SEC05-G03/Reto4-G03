@@ -112,6 +112,10 @@ def thread_cycle():
             print("La primera ciudad cargada fue " + ciudadprimero["city_ascii"])
             print("Latitud " + str(ciudadprimero["lat"]) + ", Longitud " + str(ciudadprimero["lng"]))
             print("Población: " + ciudadprimero["population"])
+            ciudadprimero = lt.lastElement(catalog["cities"])
+            print("La ultima ciudad cargada fue " + ciudadprimero["city_ascii"])
+            print("Latitud " + str(ciudadprimero["lat"]) + ", Longitud " + str(ciudadprimero["lng"]))
+            print("Población: " + ciudadprimero["population"])
             
         elif int(inputs[0]) == 4:  
             air1 = input("Ingrese el IATA del primer aeropuerto: ")
@@ -143,8 +147,72 @@ def thread_cycle():
                 print(x["indegree"])
                 print(x["outdegree"])
             
-
             MAPA = controller.v_req1(catalog,info[1])
+
+        elif int(inputs[0]) == 5:
+
+            origin = "Saint Petersburg" #input("Por favor digite la ciudad de origen: ")
+            if lt.isPresent(catalog['repeat'],origin):
+                print("La ciudad que usted busca tiene mas de un posible resultado.")
+                ciudades = mp.get(catalog['cities2'], origin)['value']
+                print("Estos son los posibles países que usted puede estar buscando")
+                contador = 1
+                for x in lt.iterator(ciudades):
+                    print('=== Posición ' + str(contador) + ' ===')
+                    contador += 1
+                    print(x['city_ascii'])
+                    print(x["country"])
+                    print(x['admin_name'])
+                choice = int(input('Digite la opción deseada: '))
+                ciudadorigen = lt.getElement(ciudades,choice)
+            else:
+                ciudad = mp.get(catalog['cities2'],origin)["value"]
+                ciudadorigen = lt.getElement(ciudad,1)
+            
+            destiny ="Lisbon" #input("Por favor digite la ciudad de destino: ")
+            if lt.isPresent(catalog['repeat'],destiny):
+                print("La ciudad que usted busca tiene mas de un posible resultado.")
+                ciudades = mp.get(catalog['cities2'], destiny)['value']
+                print("Estos son los posibles países que usted puede estar buscando")
+                contador2=1
+                for x in lt.iterator(ciudades):
+                    print('=== Posición ' + str(contador2) + ' ===')
+                    contador2 += 1
+                    print(x['city_ascii'])
+                    print(x["country"])
+                    print(x['admin_name'])
+                choice = int(input('Digite la opción deseada: '))
+                ciudaddestino = lt.getElement(ciudades,choice)
+            else:
+                ciudad = mp.get(catalog['cities2'],destiny)["value"]
+                ciudaddestino = lt.getElement(ciudad,1)
+            info = controller.req3(catalog,ciudadorigen,ciudaddestino)
+            if info != None:
+                print('=' * 15 + " Req No. 3 Inputs " + '=' * 15)
+                print("Departure city: " + origin)
+                print("Arrival city: " + destiny)
+                print('=' * 15 + " Req No. 3 Answer " + '=' *15)
+                print(" +++ The departure airport in " + origin + " is +++")
+                print("IATA: " + info[0]["IATA"])
+                print("Name: " + info[0]["Name"])
+                print("City: " + info[0]["City"])
+                print("Country: " + info[0]["Country"])
+                print("The distance from the city to the airport is: " + str(info[1]) + " km")
+
+                print(" +++ The arrival airport in " + destiny + " is +++")
+                print("IATA: " + info[2]["IATA"])
+                print("Name: " + info[2]["Name"])
+                print("City: " + info[2]["City"])
+                print("Country: " + info[2]["Country"])
+                print("The distance from the airport to the city is: " + str(info[3]) + " km") 
+
+                print (" +++ Dijkstra's trip details +++")
+                print (" - Total distance: " + str(info[4]) + " (km)")     
+                print (" - Trip Path: ")
+                for route in lt.iterator(info[5]):
+                    print("Origin : " + route["vertexA"] + " | Destiny: " + route["vertexB"] + " | Distance: "  + str(route["weight"]) + " (km)"  )
+                total = info[4] + info[1] + info[3]
+                print("The total distance of the trip is " + str(total) +  " (km)")
 
 
         elif int(inputs[0]) == 6:  
@@ -170,18 +238,6 @@ def thread_cycle():
                 print("|"+str(i).center(6)+"|"+str(d["Name"]).center(50)+" | "+ d["City"].center(30)+" | ")
                 print("+"+("-"*91)+"+")
 
-
-        elif int(inputs[0]) == 5:
-            origin = "Por favor digite la ciudad de origen: "
-            if lt.isPresent(catalog['repeat'],origin):
-                print("La ciudad que usted busca tiene mas de un posible resultado.")
-                input("Por favor digite el nombre de la ciudad, seguido por su país en este formato: City-Country. ")
-            destiny = "Por favor digite la ciudad de destino: "
-            if lt.isPresent(catalog['repeat'],destiny):
-                print("La ciudad que usted busca tiene mas de un posible resultado.")
-                input("Por favor digite el nombre de la ciudad, seguido por su país en este formato: City-Country. ")
-      
-
         elif int(inputs[0]) == 8:  
             client_id = input("Ingrese su API Key: ")
             secret = input("Ingrese su API secret: ")
@@ -191,6 +247,23 @@ def thread_cycle():
             destino = input("Ingrese la ciudad de destino: ")
 
             queryAPI.queryAPI(token)
+
+            if lt.isPresent(catalog['repeat'],origen):
+                print("La ciudad que usted busca tiene mas de un posible resultado.")
+                ciudades = mp.get(catalog['cities2'], origin)['value']
+                print("Estos son los posibles países que usted puede estar buscando")
+                contador = 1
+                for x in lt.iterator(ciudades):
+                    print('=== Posición ' + str(contador) + ' ===')
+                    contador += 1
+                    print(x['city_ascii'])
+                    print(x["country"])
+                    print(x['admin_name'])
+                choice = int(input('Digite la opción deseada: '))
+                ciudadorigen = lt.getElement(ciudades,choice)
+            else:
+                ciudad = mp.get(catalog['cities2'],origin)["value"]
+                ciudadorigen = lt.getElement(ciudad,1)
 
         elif int(inputs[0]) == 9:
             req = input("Ingrese el Requerimiento que desea visualizar: ")

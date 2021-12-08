@@ -35,6 +35,9 @@ from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.Algorithms.Graphs import prim
 from DISClib.Algorithms.Graphs import bfs
+from DISClib.Algorithms.Graphs import dfs
+from math import radians, cos, sin, asin, sqrt
+from DISClib.Algorithms.Graphs import dijsktra as dj
 
 import folium
 
@@ -77,17 +80,30 @@ def newCatalog():
                                               directed=False,
                                               size=14000,
                                               comparefunction=compareIATA)
+    catalog["rama"] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=False,
+                                              size=14000,
+                                              comparefunction=compareIATA)
+
     catalog["cities"] = lt.newList(datastructure="ARRAYLIST")
     catalog["path"] = mp.newMap(numelements=100000,maptype="LINEAR_PROBING",loadfactor=0.95)
     catalog["salida"] = lt.newList()
     catalog['repeat'] = lt.newList()
     catalog['cities2'] = mp.newMap(maptype="PROBING", numelements= 41002)
     catalog['withroutes'] = lt.newList(datastructure="SINGLE_LINKED")
+    catalog['repeatmap'] = mp.newMap(maptype="PROBING", comparefunction=compareIATA)
+    catalog['latitudeairports'] = om.newMap(omaptype="RBT")
+    catalog["longitudeairports"] = om.newMap(omaptype="RBT")
 
     return catalog
 
 
 def addAirport(catalog,airport): 
+    lat = airport["Latitude"]
+    lon = airport["Longitude"]
+    om.put(catalog["latitudeairports"],lat,airport)
+    om.put(catalog["longitudeairports"],lon,airport)
+
     lt.addLast(catalog['salida'],airport["IATA"])
     map = catalog['IATAS']
     mp.put(map,airport["IATA"],airport)       
@@ -115,7 +131,7 @@ def addRoute(catalog, route):
     edge = gr.getEdge(catalog['routes'], origen, destino)
     if edge is None:
         gr.addEdge(catalog['routes'], origen, destino, float(dist))
-        
+
     #se revisa si en el digrafo hay un arco de vuelta
     edge1 = gr.getEdge(catalog['routes'], destino, origen)    
     if edge1 != None:       
@@ -135,16 +151,14 @@ def addCity(catalog, route):
     cities = catalog["cities2"]
     present = mp.contains(cities,city)
     if not present:
-        mp.put(cities,city,route)
+        lista = lt.newList(datastructure="ARRAYLIST")
+        lt.addLast(lista,route)
+        mp.put(cities,city,lista)
     else:
-        lt.addLast(catalog['repeat'], city)
-        city = city +"-"+ route['country']
-        present= mp.contains(cities,city)
-        if not present:
-            mp.put(cities,city,route)
-        else:
-            city = city + '-' + route["id"]
-            mp.put(cities,city,route)
+        lt.addLast(catalog["repeat"],city)
+        x = mp.get(cities,city)['value']
+        lt.addLast(x,route)
+        mp.put(cities,city,x)
 
 # Funciones para agregar informacion al catalogo
 
@@ -181,6 +195,78 @@ def requerimiento2(catalog, IATA1, IATA2):
 
     return mismo,componentes
 
+def req3(catalog,ciudadorigen,ciudaddestino):
+    lat1 = ciudadorigen["lat"]
+    lat2= ciudaddestino["lat"]
+    lon1 = ciudadorigen['lng']
+    lon2 = ciudaddestino["lng"]
+    originairport = airportnear(catalog,lat1,lon1)
+    destinyairport = airportnear(catalog,lat2,lon2)
+    distanceoriginairport = originairport[0]
+    distancedestinyairport = destinyairport[0]
+    originairport = originairport[1]
+    destinyairport = destinyairport[1]
+
+    init =  dj.Dijkstra(catalog['routes'],originairport['IATA'])
+
+    if dj.hasPathTo(init,destinyairport["IATA"]):
+        distanciavuelo = dj.distTo(init,destinyairport["IATA"])
+        pilavuelo = dj.pathTo(init,destinyairport["IATA"])
+        return (originairport,distanceoriginairport,destinyairport,distancedestinyairport,distanciavuelo,pilavuelo)
+    else:
+        print("No existe una ruta entre los aeropuertos de las dos ciudades")
+    
+    return (distanceoriginairport,distancedestinyairport,originairport,destinyairport)
+
+def airportnear(catalog,lat,long):
+    key= om.ceiling(catalog['latitudeairports'],lat)
+    airportup = om.get(catalog["latitudeairports"],key)['value']
+    key = om.floor(catalog['latitudeairports'], lat)
+    airportdown = om.get(catalog['latitudeairports'],key)["value"]
+
+    key = om.floor(catalog['longitudeairports'], long)
+    airportleft = om.get(catalog['longitudeairports'],key)["value"]
+    key = om.ceiling(catalog['longitudeairports'], long)
+    airportright = om.get(catalog['longitudeairports'],key)["value"]
+    airportuplatitude = airportup["Latitude"]
+    airportuplongitude = airportup['Longitude']
+    distanceup = haversine(long,lat,airportuplongitude,airportuplatitude)
+    airportdownlatitude = airportdown["Latitude"]
+    airportdownlongitude = airportdown["Longitude"]
+    distancedown = haversine(long,lat,airportdownlongitude,airportdownlatitude)
+    airportleftlatitude = airportleft["Latitude"]
+    airportleftlongitude = airportleft["Longitude"]
+    distanceleft = haversine(long,lat,airportleftlongitude,airportleftlatitude)
+    airportrightlatitude = airportright["Latitude"]
+    airportrightlongitude = airportright["Longitude"]
+    distanceright = haversine(long,lat,airportrightlongitude,airportrightlatitude)
+    distanciaminima = min(distanceup,distancedown,distanceleft,distanceright)
+    if distanciaminima == distanceright:
+        return (distanciaminima,airportright)
+    elif distanciaminima == distanceleft:
+        return (distanciaminima, airportleft)
+    elif distanciaminima == distanceup:
+        return (distanciaminima,airportup)
+    else:
+        return (distanciaminima,airportdown)
+
+def haversine(lon1, lat1, lon2, lat2):
+    lon1 = float(lon1)
+    lat1 = float(lat1)
+    lon2 = float(lon2)
+    lat2 = float(lat2)
+
+    # convert decimal degrees to radians 
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula 
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    r = 6371 
+    return c * r
+
 def req4(catalog, origen, millas):
     #Para obtener las rutas de ida y vuelta se toma el grafo no dirigido
     mst = prim.PrimMST(catalog["connected"])
@@ -188,13 +274,17 @@ def req4(catalog, origen, millas):
     weight = prim.weightMST(catalog["routes"],mst)  
     grafo = prim.prim(catalog["connected"], mst, origen)
     
-    print(grafo)
-
-    bf = bfs.BreadhtFisrtSearch(catalog["connected"], origen)
-
     for i in lt.iterator(arbol):
+        a = i["vertexA"]
+        b = i["vertexB"]
+        w = i["weight"]
+        gr.insertVertex(catalog["rama"],a)
+        gr.insertVertex(catalog["rama"],b)
+        gr.addEdge(catalog["rama"],a,b,w)
         print(i)
-    
+    df = dfs.DepthFirstSearch(catalog["rama"], origen)
+    rama = dfs.pathTo(df, origen)
+    print(rama)
     pos_air = int(arbol["size"])
     km = float(millas) * 1.60
     print()
