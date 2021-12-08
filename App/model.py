@@ -91,8 +91,14 @@ def addAirport(catalog,airport):
     lt.addLast(catalog['salida'],airport["IATA"])
     map = catalog['IATAS']
     mp.put(map,airport["IATA"],airport)       
-    mp.put(catalog["AN-ID"],airport["Name"],airport["IATA"])    
-    gr.insertVertex(catalog['routes'], airport["IATA"])
+    mp.put(catalog["AN-ID"],airport["Name"],airport["IATA"]) 
+    entry = mp.get(map, airport["IATA"])
+    if entry is None:    
+        mp.put(map,airport["IATA"],airport["Name"])
+        
+    if not gr.containsVertex(catalog['routes'], airport["IATA"]):
+        gr.insertVertex(catalog['routes'], airport["IATA"])
+
     gr.insertVertex(catalog['connected'], airport["IATA"])
 
 def addRoute(catalog, route):
@@ -106,9 +112,10 @@ def addRoute(catalog, route):
     if not presente2:
         lt.addLast(catalog["withroutes"], destino)
 
-    #se agregan los arcos sin repetir al digrafo
-    gr.addEdge(catalog['routes'], origen, destino, float(dist))
-
+    edge = gr.getEdge(catalog['routes'], origen, destino)
+    if edge is None:
+        gr.addEdge(catalog['routes'], origen, destino, float(dist))
+        
     #se revisa si en el digrafo hay un arco de vuelta
     edge1 = gr.getEdge(catalog['routes'], destino, origen)    
     if edge1 != None:       
