@@ -69,10 +69,20 @@ def req1(catalog):
     return model.req1(catalog)
 
 def req2(catalog, air1, air2):
-    model.requerimiento2(catalog, air1, air2)
+    return model.requerimiento2(catalog, air1, air2)
 
 def req4(catalog, origen, millas):
     return model.req4(catalog, origen, millas)
 
 def req5(catalog,iata):
     return model.req5(catalog,iata)
+
+def v_req1(catalog,info):
+    return model.v_req1(catalog,info)
+
+def v_req2(catalog,points,a,b):
+    return model.v_req2(catalog,points,a,b)
+
+def v_req5(catalog,info, closed):
+    return model.v_req5(catalog,info,closed)
+

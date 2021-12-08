@@ -34,6 +34,9 @@ from DISClib.Algorithms.Graphs import scc
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.Algorithms.Graphs import prim
+from DISClib.Algorithms.Graphs import bfs
+
+import folium
 
 assert cf
 
@@ -56,7 +59,6 @@ def newCatalog():
                 'repeat': None,
                 'cities2':None,
                 'withroutes': None,
-
                 }
 
     catalog['IATAS'] = mp.newMap(numelements=14000,
@@ -107,17 +109,14 @@ def addRoute(catalog, route):
     #se agregan los arcos sin repetir al digrafo
     gr.addEdge(catalog['routes'], origen, destino, float(dist))
 
-
     #se revisa si en el digrafo hay un arco de vuelta
     edge1 = gr.getEdge(catalog['routes'], destino, origen)    
     if edge1 != None:       
         #si hay un arco de vuelta significa que hay ruta de ida y vuelta y se agrega al grafo no dirigido   
         edge2 = gr.getEdge(catalog['connected'], destino, origen)      
         if edge2 == None:
-            gr.addEdge(catalog['connected'], origen, destino, dist)
-        else:
-            if edge2['weight'] != dist and (origen == edge2['vertexA'] or origen == edge2['vertexB'])  and (destino == edge2['vertexA'] or destino == edge2['vertexB']):
-                gr.addEdge(catalog['connected'], origen, destino, dist)
+            gr.addEdge(catalog['connected'], origen, destino, float(dist))
+        
     
 
 def addCity(catalog, route):
@@ -139,10 +138,6 @@ def addCity(catalog, route):
         else:
             city = city + '-' + route["id"]
             mp.put(cities,city,route)
-        
-
-
-
 
 # Funciones para agregar informacion al catalogo
 
@@ -174,41 +169,32 @@ def requerimiento2(catalog, IATA1, IATA2):
     g = catalog["routes"]
 
     catalog["scc"] = scc.KosarajuSCC(g)
-
     componentes = scc.connectedComponents(catalog["scc"])
-
     mismo = scc.stronglyConnected(catalog["scc"], IATA1, IATA2)
-    print(" ")
-    print("El total de clústeres en la red de transporte aéreo es de:  "+ str(componentes))
-    
-    if mismo:
-        print("Los aeropuertos ingresados -SI- corresponden al mismo clúster aéreo")
-    else:
-        print("Los aeropuertos ingresados -NO- corresponden al mismo clúster aéreo")
-    print(" ")
+
+    return mismo,componentes
 
 def req4(catalog, origen, millas):
-
-    mst = prim.PrimMST(catalog["routes"])
+    #Para obtener las rutas de ida y vuelta se toma el grafo no dirigido
+    mst = prim.PrimMST(catalog["connected"])
     arbol = mst["mst"]
-    weight = prim.weightMST(catalog["routes"],mst)
-    #print(arbol,weight)
-
-    '''
-    for i in lt.iterator(arbol):
-        if i["vertexA"]==origen or i["vertexB"]==origen:
-            print(i)
-    '''
+    weight = prim.weightMST(catalog["routes"],mst)  
+    grafo = prim.prim(catalog["connected"], mst, origen)
     
+    print(grafo)
+
+    bf = bfs.BreadhtFisrtSearch(catalog["connected"], origen)
+
     for i in lt.iterator(arbol):
         print(i)
     
     pos_air = int(arbol["size"])
-    print()
-    print("El numero de posibles aeropuertos es de: "+ str(pos_air))
-    
     km = float(millas) * 1.60
-    print("El total de millas en kilometros del usuario es de: "+ str(km) + " km" + str(weight))
+    print()
+    print("El numero de nodos conectados a la red de expansión minima es de: "+ str(pos_air))
+    print("El costo total de la red en Km es de : "+ str(weight))
+    
+    print("El total de millas en kilometros del usuario es de: "+ str(km) + " km" )
 
 
 def req5(catalog,air):
@@ -242,13 +228,105 @@ def req5(catalog,air):
             None
         else:
             break
-
+    
     return prin1,prin2
 
+def v_req1(catalog,info):
+    m = folium.Map(location=[33.39, -1.52], zoom_start=2)
+    points = []
+    for i in lt.iterator(info):    
+        airp = i["Name"]
+        iata = mp.get(catalog["AN-ID"],airp)["value"]
+        lat1 = mp.get(catalog["IATAS"],iata)["value"]["Latitude"]
+        lon1 = mp.get(catalog["IATAS"],iata)["value"]["Longitude"]
+        folium.Marker(
+                location=[lat1, lon1],
+                popup=iata,
+                icon=folium.Icon(icon="plane"),).add_to(m)
+        edges = gr.adjacentEdges(catalog["routes"],iata)
+        for g in lt.iterator(edges):
+            b = g["vertexB"]           
+            lat2 = mp.get(catalog["IATAS"],b)["value"]["Latitude"]
+            lon2 = mp.get(catalog["IATAS"],b)["value"]["Longitude"]
+            points.append([float(lat1),float(lon1)])
+            points.append([float(lat2),float(lon2)])
+    
+    folium.PolyLine(locations=points,color="red",weight=.5).add_to(m)
+            
+    m.save("C:\\Users\\maril\\Desktop\\mapG03-R1.html")    
+    m
+
+def v_req2(catalog,mismo,a,b):
+    m = folium.Map(location=[33.39, -1.52], zoom_start=2) 
+    lat1 = mp.get(catalog["IATAS"],a)["value"]["Latitude"]
+    lon1 = mp.get(catalog["IATAS"],a)["value"]["Longitude"]
+    lat2 = mp.get(catalog["IATAS"],b)["value"]["Latitude"]
+    lon2 = mp.get(catalog["IATAS"],b)["value"]["Longitude"]
+    if mismo[0]:
+        folium.Marker(
+                location=[lat1, lon1],
+                popup=a,
+                icon=folium.Icon(color="green",icon="plane"),).add_to(m)
+        folium.Marker(
+                location=[lat2, lon2],
+                popup=b,
+                icon=folium.Icon(color="green",icon="plane"),).add_to(m)
+    else:
+        folium.Marker(
+                location=[lat1, lon1],
+                popup=a,
+                icon=folium.Icon(color="purple",icon="plane"),).add_to(m)
+        folium.Marker(
+                location=[lat2, lon2],
+                popup=b,
+                icon=folium.Icon(color="orange",icon="plane"),).add_to(m)
+
+    m.save("C:\\Users\\maril\\Desktop\\mapG03-R2.html")    
+    m
+
+
+def v_req5(catalog,info,closed):
+    m = folium.Map(location=[33.39, -1.52], zoom_start=2)
+    points=[]
+    lat1 = mp.get(catalog["IATAS"],closed)["value"]["Latitude"]    
+    lon1 = mp.get(catalog["IATAS"],closed)["value"]["Longitude"]    
+    folium.Marker( 
+                location=[lat1, lon1],
+                popup=closed,
+                icon=folium.Icon(color="red",icon="plane"),
+                ).add_to(m)
+    
+    for i in lt.iterator(info[0]):    
+        if i != closed:
+            lat2 = mp.get(catalog["IATAS"],i)["value"]["Latitude"]
+            lon2 = mp.get(catalog["IATAS"],i)["value"]["Longitude"]
+            
+            points.append([float(lat1),float(lon1)])
+            points.append([float(lat2),float(lon2)])
+            folium.Marker(
+                location=[lat2, lon2],
+                popup=i,
+                icon=folium.Icon(icon="plane"),).add_to(m)      
+    
+    for i in lt.iterator(info[1]):    
+        if i != closed:
+            lat2 = mp.get(catalog["IATAS"],i)["value"]["Latitude"]
+            lon2 = mp.get(catalog["IATAS"],i)["value"]["Longitude"]
+            
+            points.append([float(lat1),float(lon1)])
+            points.append([float(lat2),float(lon2)])
+            folium.Marker(
+                location=[lat2, lon2],
+                popup=i,
+                icon=folium.Icon(icon="plane"),).add_to(m)
+
+    folium.PolyLine(locations=points, color="red",weight=.5).add_to(m)  
+    
+    m.save("C:\\Users\\maril\\Desktop\\mapG03-R5.html")    
+    m
+    
+
 # Funciones utilizadas para comparar elementos dentro de una lista
-
-# Funciones de ordenamiento
-
 
 def compareIATA(stop, keyvaluestop):
     """
