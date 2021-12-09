@@ -269,7 +269,7 @@ def haversine(lon1, lat1, lon2, lat2):
     return c * r
 
 def req4(catalog, origen, millas):
-    #Para obtener las rutas de ida y vuelta se toma el grafo no dirigido
+    #Para obtener las rutas de ida y vuelta se toma el grafo no dirigido   
     mst = prim.PrimMST(catalog["connected"])
     arbol = mst["mst"]
     weight = prim.weightMST(catalog["routes"],mst) 
@@ -285,9 +285,12 @@ def req4(catalog, origen, millas):
         edge = gr.getEdge(catalog['rama'], a, b)
         if edge is None:
             gr.addEdge(catalog["rama"],a,b,w)
-            
+    
+    x = gr.vertices(catalog["rama"])
 
     df = dfs.DepthFirstSearch(catalog["rama"], origen)
+    print(df["visited"])
+    
     ver = gr.vertices(catalog["rama"])
     l = 0
     for g in lt.iterator(ver):
@@ -299,19 +302,20 @@ def req4(catalog, origen, millas):
                 l = s 
                 mayor = path
 
-    pos_air = int(arbol["size"])
+
     km = float(millas) * 1.60
     total_dis = weight*2
 
-    print("El numero de nodos conectados a la red de expansión minima es de: "+ str(pos_air))
+    print("El numero de nodos conectados a la red de expansión minima es de: "+ str(x["size"]))
 
     print("La suma de la distancia entre los aeropuertos es de: " + str(weight))
 
     print("El total de millas en kilometros del usuario es de: "+ str(km) + " km" )
 
-    print("La ruta más larga posible es de " + str(suma))
-    if km < weight:
-        falta = weight - km
+    print()
+
+    if km < total_dis:
+        falta = total_dis - km
         print("El usuario necesita " + str(falta) + " millas más para completar el viaje")
     else:
         sobra = km-weight
@@ -450,6 +454,12 @@ def v_req3(catalog,ruta,o,d):
     
     m.save("C:\\Users\\maril\\Desktop\\mapG03-R3.html")    
     m
+
+def v_req4(catalog,path):
+    m = folium.Map(location=[33.39, -1.52], zoom_start=2)
+    for i in lt.iterator(path):
+        lat1 = mp.get(catalog["IATAS"],i)["value"]["Latitude"]    
+        lon1 = mp.get(catalog["IATAS"],i)["value"]["Longitude"] 
 
 def v_req5(catalog,info,closed):
     m = folium.Map(location=[33.39, -1.52], zoom_start=2)

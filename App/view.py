@@ -218,12 +218,12 @@ def thread_cycle():
 
         elif int(inputs[0]) == 6:  
             city = "LIS" #input("Ingrese la ciudad de origen: ")
-            millas = "1985.00" #input("Ingrese las millas de viajero disponibles: ")
+            millas = "19850.00" #input("Ingrese las millas de viajero disponibles: ")
             path = controller.req4(catalog,city,millas)
             for i in lt.iterator(path[0]):
                 print(i)
 
-            
+            MAPA = controller.v_req4(path[0]) 
       
 
         elif int(inputs[0]) == 7:  
