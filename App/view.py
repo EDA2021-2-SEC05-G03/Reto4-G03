@@ -50,6 +50,7 @@ def printMenu():
     print("6- Requerimiento 4 (Grupal): Utilizar las millas de viajero")
     print("7- Requerimiento 5 (Grupal): Cuantificar el efecto de un aeropuerto cerrado")
     print("8- Requerimiento 6 (BONO Grupal): Comparar con servicio WEB externo")
+    print("9- Requerimiento 7 (BONO Grupal): Visualizar gráficamente los requerimientos")
 
 catalog = None
 routes = 'routes-utf8-small.csv'
@@ -117,22 +118,6 @@ def thread_cycle():
             print("Latitud " + str(ciudadprimero["lat"]) + ", Longitud " + str(ciudadprimero["lng"]))
             print("Población: " + ciudadprimero["population"])
             
-        elif int(inputs[0]) == 4:  
-            air1 = input("Ingrese el IATA del primer aeropuerto: ")
-            air2 = input("Ingrese el IATA del segundo aeropuerto: ")
-            mismo = controller.req2(catalog, air1, air2)
-
-            print(" ")
-            print("El total de clústeres en la red de transporte aéreo es de:  "+ str(mismo[1]))
-            if mismo[0]:
-                print("Los aeropuertos ingresados -SI- corresponden al mismo clúster aéreo")
-            else:
-                print("Los aeropuertos ingresados -NO- corresponden al mismo clúster aéreo")
-            print(" ")
-
-            MAPA = controller.v_req2(catalog, mismo, air1, air2)
-            
-
         elif int(inputs[0]) == 3:
             print('=============== Req. 1 Inputs ===============')
             print('most connected airports in network (TOP 5)')
@@ -148,6 +133,21 @@ def thread_cycle():
                 print(x["outdegree"])
             
             MAPA = controller.v_req1(catalog,info[1])
+
+        elif int(inputs[0]) == 4:  
+            air1 = input("Ingrese el IATA del primer aeropuerto: ")
+            air2 = input("Ingrese el IATA del segundo aeropuerto: ")
+            mismo = controller.req2(catalog, air1, air2)
+
+            print(" ")
+            print("El total de clústeres en la red de transporte aéreo es de:  "+ str(mismo[1]))
+            if mismo[0]:
+                print("Los aeropuertos ingresados -SI- corresponden al mismo clúster aéreo")
+            else:
+                print("Los aeropuertos ingresados -NO- corresponden al mismo clúster aéreo")
+            print(" ")
+
+            MAPA = controller.v_req2(catalog, mismo, air1, air2)
 
         elif int(inputs[0]) == 5:
 
@@ -214,11 +214,17 @@ def thread_cycle():
                 total = info[4] + info[1] + info[3]
                 print("The total distance of the trip is " + str(total) +  " (km)")
 
+            MAPA = controller.v_req3(catalog, info[5],ciudadorigen,ciudaddestino)    
 
         elif int(inputs[0]) == 6:  
             city = "LIS" #input("Ingrese la ciudad de origen: ")
             millas = "1985.00" #input("Ingrese las millas de viajero disponibles: ")
-            controller.req4(catalog,city,millas)
+            path = controller.req4(catalog,city,millas)
+            for i in lt.iterator(path[0]):
+                print(i)
+
+            
+      
 
         elif int(inputs[0]) == 7:  
             iata = input("Ingrese el IATA del aeropuerto fuera de funcionamiento: ")
@@ -243,14 +249,12 @@ def thread_cycle():
             secret = input("Ingrese su API secret: ")
             getAccessToken.getToken(client_id,secret)
             token = input("Ingrese su Access Token: ")
-            origen = input("Ingrese la ciudad de origen: ")
-            destino = input("Ingrese la ciudad de destino: ")
-
-            queryAPI.queryAPI(token)
+            origen = "London" #input("Ingrese la ciudad de origen: ")
+            destino = "Lisbon" #input("Ingrese la ciudad de destino: ")
 
             if lt.isPresent(catalog['repeat'],origen):
                 print("La ciudad que usted busca tiene mas de un posible resultado.")
-                ciudades = mp.get(catalog['cities2'], origin)['value']
+                ciudades = mp.get(catalog['cities2'], origen)['value']
                 print("Estos son los posibles países que usted puede estar buscando")
                 contador = 1
                 for x in lt.iterator(ciudades):
@@ -262,8 +266,35 @@ def thread_cycle():
                 choice = int(input('Digite la opción deseada: '))
                 ciudadorigen = lt.getElement(ciudades,choice)
             else:
-                ciudad = mp.get(catalog['cities2'],origin)["value"]
+                ciudad = mp.get(catalog['cities2'],origen)["value"]
                 ciudadorigen = lt.getElement(ciudad,1)
+
+            if lt.isPresent(catalog['repeat'],destino):
+                print("La ciudad que usted busca tiene mas de un posible resultado.")
+                ciudades = mp.get(catalog['cities2'], destino)['value']
+                print("Estos son los posibles países que usted puede estar buscando")
+                contador = 1
+                for x in lt.iterator(ciudades):
+                    print('=== Posición ' + str(contador) + ' ===')
+                    contador += 1
+                    print(x['city_ascii'])
+                    print(x["country"])
+                    print(x['admin_name'])
+                choice = int(input('Digite la opción deseada: '))
+                ciudaddestino = lt.getElement(ciudades,choice)
+            else:
+                ciudad = mp.get(catalog['cities2'],destino)["value"]
+                ciudaddestino = lt.getElement(ciudad,1)
+
+            lat1 = ciudadorigen["lat"]       
+            lon1 = ciudadorigen['lng']
+            lat2 = ciudaddestino["lat"]       
+            lon2 = ciudaddestino['lng']
+
+            iata1 = queryAPI.queryAPI(token,origen,lat1,lon1) ###
+            iata2 = queryAPI.queryAPI(token,destino,lat2,lon2) ###
+            
+
 
         elif int(inputs[0]) == 9:
             req = input("Ingrese el Requerimiento que desea visualizar: ")

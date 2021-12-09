@@ -86,6 +86,9 @@ def v_req1(catalog,info):
 def v_req2(catalog,points,a,b):
     return model.v_req2(catalog,points,a,b)
 
+def v_req3(catalog,ruta,origen,dest):
+    return model.v_req3(catalog,ruta,origen,dest)
+
 def v_req5(catalog,info, closed):
     return model.v_req5(catalog,info,closed)
 

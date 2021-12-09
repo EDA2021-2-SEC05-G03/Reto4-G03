@@ -62,6 +62,7 @@ def newCatalog():
                 'repeat': None,
                 'cities2':None,
                 'withroutes': None,
+                'rama': None,
                 }
 
     catalog['IATAS'] = mp.newMap(numelements=14000,
@@ -271,28 +272,56 @@ def req4(catalog, origen, millas):
     #Para obtener las rutas de ida y vuelta se toma el grafo no dirigido
     mst = prim.PrimMST(catalog["connected"])
     arbol = mst["mst"]
-    weight = prim.weightMST(catalog["routes"],mst)  
-    grafo = prim.prim(catalog["connected"], mst, origen)
-    
+    weight = prim.weightMST(catalog["routes"],mst) 
+    l = 0
     for i in lt.iterator(arbol):
         a = i["vertexA"]
         b = i["vertexB"]
         w = i["weight"]
-        gr.insertVertex(catalog["rama"],a)
-        gr.insertVertex(catalog["rama"],b)
-        gr.addEdge(catalog["rama"],a,b,w)
-        print(i)
+        if not gr.containsVertex(catalog['rama'], a):
+            gr.insertVertex(catalog['rama'], a)
+        if not gr.containsVertex(catalog['rama'], b):
+            gr.insertVertex(catalog["rama"],b)
+        edge = gr.getEdge(catalog['rama'], a, b)
+        if edge is None:
+            gr.addEdge(catalog["rama"],a,b,w)
+            
+
     df = dfs.DepthFirstSearch(catalog["rama"], origen)
-    rama = dfs.pathTo(df, origen)
-    print(rama)
+    ver = gr.vertices(catalog["rama"])
+    l = 0
+    for g in lt.iterator(ver):
+        path = dfs.pathTo(df,g)
+        
+        if path != None:
+            s = path["size"]
+            if s > l:
+                l = s 
+                mayor = path
+
     pos_air = int(arbol["size"])
     km = float(millas) * 1.60
-    print()
+    total_dis = weight*2
+
     print("El numero de nodos conectados a la red de expansión minima es de: "+ str(pos_air))
-    print("El costo total de la red en Km es de : "+ str(weight))
-    
+
+    print("La suma de la distancia entre los aeropuertos es de: " + str(weight))
+
     print("El total de millas en kilometros del usuario es de: "+ str(km) + " km" )
 
+    print("La ruta más larga posible es de " + str(suma))
+    if km < weight:
+        falta = weight - km
+        print("El usuario necesita " + str(falta) + " millas más para completar el viaje")
+    else:
+        sobra = km-weight
+        print("A el usuario le sobran " + str(sobra) + " para completar el viaje")
+
+    print()
+    print("El costo total de la red de ida y vuelta en Km es de : "+ str(total_dis))
+    
+    
+    return mayor,km
 
 def req5(catalog,air):
     afectados = gr.degree(catalog["routes"],air)
@@ -381,6 +410,46 @@ def v_req2(catalog,mismo,a,b):
     m.save("C:\\Users\\maril\\Desktop\\mapG03-R2.html")    
     m
 
+def v_req3(catalog,ruta,o,d):
+    m = folium.Map(location=[33.39, -1.52], zoom_start=3)
+    points = []
+    lat11 = o["lat"]
+    lon11 = o["lng"]
+    lat22 = d["lat"]
+    lon22 = d["lng"]
+               
+    folium.Marker(
+                location=[lat11, lon11],
+                popup=o["city"],
+                icon=folium.Icon(color="blue",icon="circle"),).add_to(m)
+    folium.Marker(
+                location=[lat22, lon22],
+                popup=d["city"],
+                icon=folium.Icon(color="blue",icon="circle"),).add_to(m)
+    points = []
+    for i in lt.iterator(ruta):
+        a = i["vertexA"] 
+        b = i["vertexB"] 
+        
+        lat1 = mp.get(catalog["IATAS"],a)["value"]["Latitude"]    
+        lon1 = mp.get(catalog["IATAS"],a)["value"]["Longitude"] 
+        lat2 = mp.get(catalog["IATAS"],b)["value"]["Latitude"]    
+        lon2 = mp.get(catalog["IATAS"],b)["value"]["Longitude"] 
+        folium.Marker(
+                location=[lat1, lon1],
+                popup=a,
+                icon=folium.Icon(color="purple",icon="plane"),).add_to(m)
+        folium.Marker(
+                location=[lat2, lon2],
+                popup=b,
+                icon=folium.Icon(color="purple",icon="plane"),).add_to(m)
+        points.append([float(lat1),float(lon1)])
+        points.append([float(lat2),float(lon2)])
+    
+    folium.PolyLine(locations=points, color="red",weight=.5).add_to(m)
+    
+    m.save("C:\\Users\\maril\\Desktop\\mapG03-R3.html")    
+    m
 
 def v_req5(catalog,info,closed):
     m = folium.Map(location=[33.39, -1.52], zoom_start=2)
