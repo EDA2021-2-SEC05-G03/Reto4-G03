@@ -32,6 +32,7 @@ assert cf
 from DISClib.ADT import map as mp
 import threading
 from DISClib.ADT import stack
+from time import process_time
 
 """
 La vista se encarga de la interacción con el usuario
@@ -53,9 +54,9 @@ def printMenu():
     print("9- Requerimiento 7 (BONO Grupal): Visualizar gráficamente los requerimientos")
 
 catalog = None
-routes = 'routes-utf8-small.csv'
-airports = 'airports-utf8-small.csv'
-cities = 'worldcities-utf8.csv'
+routes = 'routes_full.csv'
+airports = 'airports_full.csv'
+cities = 'worldcities.csv'
 
 """
 Menu principal
@@ -69,6 +70,7 @@ def thread_cycle():
             print("Cargando información de los archivos ....")
 
         elif int(inputs[0]) == 2:
+            t1 = process_time()
             controller.loadDataAir(catalog,airports)
             controller.loadDataRoute(catalog,routes)
             controller.loadDataCities(catalog,cities)
@@ -117,8 +119,11 @@ def thread_cycle():
             print("La ultima ciudad cargada fue " + ciudadprimero["city_ascii"])
             print("Latitud " + str(ciudadprimero["lat"]) + ", Longitud " + str(ciudadprimero["lng"]))
             print("Población: " + ciudadprimero["population"])
-            
+            t2 = process_time()
+            time = t2-t1
+            print(time)
         elif int(inputs[0]) == 3:
+            t1 = process_time()
             print('=============== Req. 1 Inputs ===============')
             print('most connected airports in network (TOP 5)')
             print("Numbers of airports in network: " + str(mp.size(catalog['IATAS'])))
@@ -126,15 +131,20 @@ def thread_cycle():
             print('=============== Req. 1 Outputs ===============')
             print('Connected airports inside network: ' + str(info[0]))
             print("Top 5 most connected airports..")
+            print("-"*80)
+
+            print("Name".center(50)+"|" +"degree".center(10)+"|" + "indegree".center(10) +"|"+"outdegree".center(10))
+            print("-"*80)
             for x in lt.iterator(info[1]):
-                print(x["Name"])
-                print(x["degree"])
-                print(x["indegree"])
-                print(x["outdegree"])
-            
+                print(str(x["Name"]).center(50)+"|" + str(x["degree"]).center(10) +"|" + str(x["indegree"]).center(10) +"|"+ str(x["outdegree"]).center(10))
+                print("-"*80)
+            t2 = process_time()
+            time = t2-t1
+            print(time)
             MAPA = controller.v_req1(catalog,info[1])
 
         elif int(inputs[0]) == 4:  
+            t1 = process_time()
             air1 = input("Ingrese el IATA del primer aeropuerto: ")
             air2 = input("Ingrese el IATA del segundo aeropuerto: ")
             mismo = controller.req2(catalog, air1, air2)
@@ -146,11 +156,13 @@ def thread_cycle():
             else:
                 print("Los aeropuertos ingresados -NO- corresponden al mismo clúster aéreo")
             print(" ")
-
+            t2 = process_time()
+            time = t2-t1
+            print(time)
             MAPA = controller.v_req2(catalog, mismo, air1, air2)
 
         elif int(inputs[0]) == 5:
-
+            t1 = process_time()
             origin = "Saint Petersburg" #input("Por favor digite la ciudad de origen: ")
             if lt.isPresent(catalog['repeat'],origin):
                 print("La ciudad que usted busca tiene mas de un posible resultado.")
@@ -209,24 +221,44 @@ def thread_cycle():
                 print (" +++ Dijkstra's trip details +++")
                 print (" - Total distance: " + str(info[4]) + " (km)")     
                 print (" - Trip Path: ")
+                print("-"*70)
+
                 for route in lt.iterator(info[5]):
                     print("Origin : " + route["vertexA"] + " | Destiny: " + route["vertexB"] + " | Distance: "  + str(route["weight"]) + " (km)"  )
+                    print("-"*70)
                 total = info[4] + info[1] + info[3]
                 print("The total distance of the trip is " + str(total) +  " (km)")
-
+            t2 = process_time()
+            time = t2-t1
+            print(time)
             MAPA = controller.v_req3(catalog, info[5],ciudadorigen,ciudaddestino)    
 
         elif int(inputs[0]) == 6:  
+            t1 = process_time()
             city = "LIS" #input("Ingrese la ciudad de origen: ")
             millas = "19850.00" #input("Ingrese las millas de viajero disponibles: ")
             path = controller.req4(catalog,city,millas)
+            lista = lt.newList(datastructure="ARRAY_LIST")
+            print()
+            print("El camino que el usuario puede seguir es el siguiente:")
+            print("-".center(3))
             for i in lt.iterator(path[0]):
+                print("|".center(3))
                 print(i)
+                lt.addLast(lista,i)
+                lt.addLast(lista,i)
+            print("-".center(3))
+            lt.removeFirst(lista)
+            lt.removeLast(lista)
+            t2 = process_time()
+            time = t2-t1
+            print(time)
 
-            MAPA = controller.v_req4(path[0]) 
+            MAPA = controller.v_req4(catalog,lista) 
       
 
-        elif int(inputs[0]) == 7:  
+        elif int(inputs[0]) == 7: 
+            t1 = process_time() 
             iata = input("Ingrese el IATA del aeropuerto fuera de funcionamiento: ")
             tab = controller.req5(catalog,iata)
             MAP = controller.v_req5(catalog,tab,iata)
@@ -243,8 +275,12 @@ def thread_cycle():
                 d = mp.get(city,i)["value"]
                 print("|"+str(i).center(6)+"|"+str(d["Name"]).center(50)+" | "+ d["City"].center(30)+" | ")
                 print("+"+("-"*91)+"+")
+            t2 = process_time()
+            time = t2-t1
+            print(time)
 
         elif int(inputs[0]) == 8:  
+            t1 = process_time()
             client_id = input("Ingrese su API Key: ")
             secret = input("Ingrese su API secret: ")
             getAccessToken.getToken(client_id,secret)
@@ -294,12 +330,16 @@ def thread_cycle():
             iata1 = queryAPI.queryAPI(token,origen,lat1,lon1) ###
             iata2 = queryAPI.queryAPI(token,destino,lat2,lon2) ###
             
-
-
-        elif int(inputs[0]) == 9:
-            req = input("Ingrese el Requerimiento que desea visualizar: ")
-            
-            
+            info = controller.req6(catalog,iata1,iata2,lat1,lon1,lat2,lon2)
+            print("La distancia entre la ciudad origen a el aeropuerto con mayor influencia cercano es: " + str(info[0]) + " (km)")
+            print("La distancia entre la ciudad destino a el aeropuerto con mayor influencia cercano es: " + str(info[1]) + " (km)")
+            distttotal = info[0] + info[1] + info[2]
+            print("La distancia total en todo el recorrido es de : " + str(distttotal) + " (km)")
+            for route in lt.iterator(info[3]):
+                print("Origin : " + route["vertexA"] + " | Destiny: " + route["vertexB"] + " | Distance: "  + str(route["weight"]) + " (km)"  )
+            t2 = process_time()
+            time = t2-t1
+            print(time)
         else:
             sys.exit(0)
     sys.exit(0)

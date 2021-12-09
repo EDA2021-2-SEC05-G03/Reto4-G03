@@ -289,8 +289,6 @@ def req4(catalog, origen, millas):
     x = gr.vertices(catalog["rama"])
 
     df = dfs.DepthFirstSearch(catalog["rama"], origen)
-    print(df["visited"])
-    
     ver = gr.vertices(catalog["rama"])
     l = 0
     for g in lt.iterator(ver):
@@ -301,7 +299,6 @@ def req4(catalog, origen, millas):
             if s > l:
                 l = s 
                 mayor = path
-
 
     km = float(millas) * 1.60
     total_dis = weight*2
@@ -316,7 +313,8 @@ def req4(catalog, origen, millas):
 
     if km < total_dis:
         falta = total_dis - km
-        print("El usuario necesita " + str(falta) + " millas más para completar el viaje")
+        falta = falta/1.6
+        print("El usuario necesita " + str(round(falta,2)) + " millas más para completar el viaje")
     else:
         sobra = km-weight
         print("A el usuario le sobran " + str(sobra) + " para completar el viaje")
@@ -360,6 +358,25 @@ def req5(catalog,air):
             break
     
     return prin1,prin2
+
+def req6(catalog,iatainicio, iatafin,lat1,lon1,lat2,lon2):
+    grafo = catalog["routes"]
+    air1 = mp.get(catalog["IATAS"],iatainicio)["value"]
+    air2 = mp.get(catalog["IATAS"], iatafin)["value"]
+    air1lat = air1["Latitude"]
+    air1lon = air1["Longitude"]
+    air2lat = air2["Latitude"]
+    air2lon = air2["Longitude"]
+    distance1 = haversine(lon1,lat1,air1lon,air1lat)
+    distance2 = haversine(lon2,lat2,air2lon,air2lat)
+    init = dj.Dijkstra(grafo,iatainicio)
+    if dj.hasPathTo(init,iatafin):
+        distanciavuelo = dj.distTo(init,iatafin)
+        pilavuelo = dj.pathTo(init,iatafin)
+        return (distance1,distance2,distanciavuelo,pilavuelo)
+    else: 
+        print("No hay una ruta directa entre los dos aeropuertos más cercanos a las ciudades")
+
 
 def v_req1(catalog,info):
     m = folium.Map(location=[33.39, -1.52], zoom_start=2)
@@ -457,9 +474,19 @@ def v_req3(catalog,ruta,o,d):
 
 def v_req4(catalog,path):
     m = folium.Map(location=[33.39, -1.52], zoom_start=2)
+    point = []
     for i in lt.iterator(path):
         lat1 = mp.get(catalog["IATAS"],i)["value"]["Latitude"]    
         lon1 = mp.get(catalog["IATAS"],i)["value"]["Longitude"] 
+        folium.Marker( 
+                location=[lat1, lon1],
+                popup=i,
+                icon=folium.Icon(color="red",icon="plane"),
+                ).add_to(m)
+        point.append([float(lat1),float(lon1)])
+    folium.PolyLine(locations=point, color="blue",weight=.5).add_to(m)
+    m.save("C:\\Users\\maril\\Desktop\\mapG03-R4.html")    
+    m
 
 def v_req5(catalog,info,closed):
     m = folium.Map(location=[33.39, -1.52], zoom_start=2)

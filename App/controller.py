@@ -80,6 +80,9 @@ def req4(catalog, origen, millas):
 def req5(catalog,iata):
     return model.req5(catalog,iata)
 
+def req6(catalog,iata,iatafin,lat1,lon1,lat2,lon2):
+    return req6(catalog,iata,iatafin,lat1,lon1,lat2,lon2)
+
 def v_req1(catalog,info):
     return model.v_req1(catalog,info)
 
@@ -89,8 +92,8 @@ def v_req2(catalog,points,a,b):
 def v_req3(catalog,ruta,origen,dest):
     return model.v_req3(catalog,ruta,origen,dest)
 
-def v_req4(catalog,ruta,origen,dest):
-    return model.v_req4(catalog,ruta,origen,dest)
+def v_req4(catalog,ruta):
+    return model.v_req4(catalog,ruta)
 
 def v_req5(catalog,info, closed):
     return model.v_req5(catalog,info,closed)
